@@ -62,6 +62,29 @@
   .add-row input:focus { border-color: #888780; background: #fff; }
   .add-row button { font-size: 13px; padding: 5px 12px; border: 0.5px solid #b4b2a9; border-radius: 8px; background: transparent; color: #1a1a18; cursor: pointer; white-space: nowrap; font-family: inherit; }
   .add-row button:hover { background: #f5f4f0; }
+
+  /* ── FAB ── */
+  .fab { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; border-radius: 50%; background: #7F77DD; color: #fff; border: none; font-size: 28px; cursor: pointer; box-shadow: 0 4px 18px rgba(127,119,221,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; transition: background .15s, transform .15s; line-height: 1; }
+  .fab:hover { background: #6B63CC; transform: scale(1.07); }
+  .fab:active { transform: scale(0.95); }
+
+  /* ── Add-task modal ── */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.22); z-index: 1001; align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: #fff; border-radius: 14px; padding: 1.5rem; width: 360px; max-width: calc(100vw - 2rem); box-shadow: 0 8px 40px rgba(0,0,0,0.14); }
+  .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; color: #1a1a18; }
+  .modal-field { margin-top: 12px; }
+  .modal-field:first-of-type { margin-top: 0; }
+  .modal label { font-size: 11px; color: #888780; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; display: block; margin-bottom: 5px; }
+  .modal select, .modal input[type=text] { width: 100%; font-size: 13px; padding: 7px 10px; border: 0.5px solid #b4b2a9; border-radius: 8px; background: #f5f4f0; color: #1a1a18; outline: none; font-family: inherit; }
+  .modal select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888780'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+  .modal select:focus, .modal input[type=text]:focus { border-color: #7F77DD; background: #fff; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+  .modal-actions button { font-size: 13px; padding: 7px 16px; border-radius: 8px; border: 0.5px solid #b4b2a9; cursor: pointer; font-family: inherit; transition: background .12s; }
+  .btn-cancel { background: transparent; color: #888780; }
+  .btn-cancel:hover { background: #f5f4f0; }
+  .btn-add-task { background: #7F77DD; color: #fff; border-color: #7F77DD; font-weight: 500; }
+  .btn-add-task:hover { background: #6B63CC; border-color: #6B63CC; }
 </style>
 </head>
 <body>
@@ -88,6 +111,30 @@
     <div class="section">
       <div class="section-header"><span class="section-icon">🌿</span><span class="section-title">Health & Wellbeing</span><span class="section-count" id="c-health"></span></div>
       <div class="task-list" id="s-health"></div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" title="Add task">+</button>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>Add Task</h3>
+    <div class="modal-field">
+      <label for="modalCat">Category</label>
+      <select id="modalCat"></select>
+    </div>
+    <div class="modal-field">
+      <label for="modalSub">Subcategory</label>
+      <select id="modalSub"></select>
+    </div>
+    <div class="modal-field">
+      <label for="modalTask">Task</label>
+      <input type="text" id="modalTask" placeholder="What needs to be done?">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-add-task" id="modalAdd">Add Task</button>
     </div>
   </div>
 </div>
@@ -336,6 +383,60 @@ function clearDropStyles() {
 }
 
 render();
+
+// ── FAB / Add-task modal ──
+const sectionLabels = { work: 'Work', personal: 'Personal', home: 'Home', health: 'Health & Wellbeing' };
+
+const fabBtn        = document.getElementById('fabBtn');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalCat      = document.getElementById('modalCat');
+const modalSub      = document.getElementById('modalSub');
+const modalTask     = document.getElementById('modalTask');
+const modalCancel   = document.getElementById('modalCancel');
+const modalAdd      = document.getElementById('modalAdd');
+
+function openModal() {
+  modalCat.innerHTML = '';
+  Object.keys(sectionMap).forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec; opt.textContent = sectionLabels[sec];
+    modalCat.appendChild(opt);
+  });
+  updateModalSubs();
+  modalTask.value = '';
+  modalBackdrop.classList.add('open');
+  setTimeout(() => modalTask.focus(), 60);
+}
+
+function updateModalSubs() {
+  const sec = modalCat.value;
+  modalSub.innerHTML = '';
+  Object.keys(st.data[sec]).forEach(grp => {
+    const opt = document.createElement('option');
+    opt.value = grp; opt.textContent = grp;
+    modalSub.appendChild(opt);
+  });
+}
+
+function closeModal() { modalBackdrop.classList.remove('open'); }
+
+function doAddTask() {
+  const val = modalTask.value.trim();
+  if (!val) { modalTask.focus(); return; }
+  st.data[modalCat.value][modalSub.value].push({ t: val });
+  render();
+  closeModal();
+}
+
+fabBtn.onclick = openModal;
+modalCancel.onclick = closeModal;
+modalAdd.onclick = doAddTask;
+modalCat.onchange = updateModalSubs;
+modalTask.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doAddTask();
+  if (e.key === 'Escape') closeModal();
+});
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
 </script>
 </body>
 </html>
