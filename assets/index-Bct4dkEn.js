@@ -44,6 +44,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div class="auth-right">
       <div class="auth-card">
 
+        <!-- Brand header -->
+        <div class="auth-card-brand">
+          <div class="auth-card-brand-name">Kuteos</div>
+          <div class="auth-card-brand-tagline">life organiser</div>
+        </div>
+
         <!-- Tabs -->
         <div class="auth-tabs">
           <button class="auth-tab active" id="tabLogin">Sign in</button>
